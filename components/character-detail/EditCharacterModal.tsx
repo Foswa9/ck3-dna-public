@@ -21,6 +21,7 @@ interface EditCharacterModalProps {
     };
     tags: string[];
   };
+  additionalImages?: string[];
   onUpdate: (updatedData: any) => void;
 }
 
@@ -31,6 +32,7 @@ export default function EditCharacterModal({
   onClose,
   characterId,
   initialData,
+  additionalImages = [],
   onUpdate,
 }: EditCharacterModalProps) {
   const [formData, setFormData] = useState({ ...initialData });
@@ -382,6 +384,8 @@ export default function EditCharacterModal({
         onClose={() => setIsImagePickerOpen(false)}
         onSelect={(path) => setMainImageUrl(path)}
         selectedImage={mainImageUrl}
+        mainImage={initialData.mainImage?.url}
+        additionalImages={additionalImages}
       />
     </>
   );
