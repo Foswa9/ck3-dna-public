@@ -1,0 +1,412 @@
+"use client";
+
+import { useState } from "react";
+import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
+
+interface CreateCharacterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const AVAILABLE_TAGS = ["Female", "Male"];
+
+export default function CreateCharacterModal({
+  isOpen,
+  onClose,
+}: CreateCharacterModalProps) {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    dnaCode: "",
+  });
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (file.type.startsWith("image/")) {
+        if (file.size > 5 * 1024 * 1024) {
+           setError("Image size must be less than 5MB");
+           return;
+        }
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+        setError("");
+      } else {
+        setError("Please upload an image file");
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const handleTagToggle = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
+    } else {
+      if (selectedTags.length >= 4) return;
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError("Image size must be less than 5MB");
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError("");
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({ name: "", description: "", dnaCode: "" });
+    setSelectedTags([]);
+    setImageFile(null);
+    setImagePreview(null);
+    setError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("DEBUG: handleSubmit initiated", { 
+      name: formData.name, 
+      hasImage: !!imageFile, 
+      dna: !!formData.dnaCode 
+    });
+    
+    setLoading(true);
+    setError("");
+
+    try {
+      if (!formData.name.trim()) {
+        throw new Error("Character Name is required.");
+      }
+      if (!formData.dnaCode.trim()) {
+        throw new Error("DNA String is required.");
+      }
+
+      // 1. Upload Image
+      let downloadURL = "https://placehold.co/600x800?text=No+Image";
+
+      if (imageFile) {
+        console.log("DEBUG: Uploading image to Firebase Storage...");
+        const storageRef = ref(storage, `custom_characters/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        downloadURL = await getDownloadURL(snapshot.ref);
+        console.log("DEBUG: Image uploaded, URL:", downloadURL);
+      } else {
+        console.log("DEBUG: No image selected, using default placeholder.");
+      }
+
+      // 2. Save Character Data with full schema
+      console.log("DEBUG: Adding document to Firestore 'characters' collection...");
+      const docData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        dnaCode: formData.dnaCode.trim(),
+        mainImage: {
+          url: downloadURL,
+          thumbnailUrl: downloadURL,
+        },
+        additionalImages: [], // Initialize empty as per schema
+        tags: selectedTags,
+        stats: {
+          views: 0,
+          copies: 0,
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, "characters"), docData);
+      console.log("DEBUG: Document created with ID:", docRef.id);
+
+      setSuccess(true);
+      
+      // Reset and close after a delay
+      setTimeout(() => {
+        setSuccess(false);
+        handleReset();
+        onClose();
+      }, 1500);
+
+    } catch (err: any) {
+      console.error("DEBUG: Error in handleSubmit:", err);
+      // Better error messages for Firebase specific errors if possible
+      let errorMessage = "Failed to create character. Please try again.";
+      
+      if (err.code === 'storage/unauthorized') {
+        errorMessage = "Storage upload failed: Permission denied (Check Firebase Storage rules).";
+      } else if (err.code === 'permission-denied') {
+        errorMessage = "Firestore save failed: Permission denied (Check Firestore rules).";
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] overflow-y-auto" role="dialog">
+      <div
+        className="fixed inset-0 bg-gray-900/75 transition-opacity backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col transform rounded-2xl bg-surface-light dark:bg-surface-dark shadow-2xl transition-all border border-border-light dark:border-border-dark overflow-hidden">
+          {/* Header - Fixed at top */}
+          <div className="flex-shrink-0 flex items-center justify-between border-b border-border-light dark:border-border-dark px-8 py-5 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+            <div>
+              <h2 className="text-xl font-bold text-text-main-light dark:text-text-main-dark">
+                Add a new character
+              </h2>
+              <p className="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">
+                Add a new character to the DNA vault
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-full p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:rotate-90"
+            >
+              <X className="size-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            {/* Scrollable Body */}
+            <div className="p-8 lg:p-12 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                {/* Left Column: Visuals (Image Upload) */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`relative w-full aspect-[3/4] rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-300 group shadow-lg ${
+                      isDragging
+                        ? "border-primary bg-primary/10 scale-[1.02]"
+                        : imagePreview 
+                          ? "border-transparent" 
+                          : "border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50 hover:border-primary/50"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    
+                    {imagePreview ? (
+                      <div className="relative w-full h-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
+                          <span className="text-sm font-semibold flex items-center gap-2">
+                            <Upload className="size-4" /> Change Image
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center text-center p-6 text-text-sub-light dark:text-text-sub-dark pointer-events-none">
+                        <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                          <ImageIcon className={`size-10 ${isDragging ? "text-primary animate-pulse" : "text-primary/70"}`} />
+                        </div>
+                        <h3 className="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-1">
+                          {isDragging ? "Drop to upload" : "Upload Character Image"}
+                        </h3>
+                        <p className="text-sm max-w-[200px]">
+                          Drag and drop or click to select your character portrait
+                        </p>
+                        <span className="mt-4 text-[10px] uppercase tracking-widest font-bold opacity-60">
+                          JPG, PNG • Max 5MB
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Additional Mini Help */}
+                  <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg">
+                    <p className="text-xs text-text-main-light dark:text-text-main-dark leading-relaxed">
+                      <strong>Pro tip:</strong> Portraits from the Ruler Designer's portrait preview (3/4 aspect ratio) look best in this layout.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Column: Details & Actions */}
+                <div className="lg:col-span-7 flex flex-col justify-start">
+                  
+                  {/* Tag Multi-Select */}
+                  <div className="mb-6">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                      Select Categories
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {AVAILABLE_TAGS.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => handleTagToggle(tag)}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                            selectedTags.includes(tag)
+                              ? "bg-primary text-white shadow-md shadow-primary/30 -translate-y-0.5"
+                              : "bg-background-light dark:bg-background-dark/50 text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Character Name Input */}
+                  <div className="mb-8">
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full bg-transparent border-none p-0 text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] text-text-main-light dark:text-text-main-dark placeholder:text-text-sub-light/20 dark:placeholder:text-text-sub-dark/20 focus:ring-0 outline-none"
+                      placeholder="Character Name *"
+                    />
+                    <div className="h-0.5 w-12 bg-primary mt-2 rounded-full"></div>
+                  </div>
+
+                  {/* Description Input */}
+                  <div className="mb-8">
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full bg-transparent border-none p-0 text-lg text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed placeholder:text-text-sub-light/40 dark:placeholder:text-text-sub-dark/40 focus:ring-0 outline-none resize-none"
+                      placeholder="Add a brief backstory or description for this character..."
+                    />
+                  </div>
+
+                  {/* DNA String Input - Styled like code block */}
+                  <div className="mb-8 group/dna">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                      DNA String *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-600/30 rounded-xl blur opacity-0 group-focus-within/dna:opacity-100 transition duration-500"></div>
+                      <textarea
+                        required
+                        value={formData.dnaCode}
+                        onChange={(e) => setFormData({ ...formData, dnaCode: e.target.value })}
+                        className="relative w-full bg-[#111418] border border-[#283039] rounded-xl p-6 font-mono text-xs sm:text-sm text-[#e2e8f0] focus:outline-none transition-all placeholder:text-[#4a5568] scrollbar-hide min-h-[200px]"
+                        placeholder="Paste the raw CK3 DNA string here..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                    <div className="flex items-center gap-2 p-4 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium animate-in fade-in slide-in-from-top-1">
+                      <span className="flex items-center justify-center size-5 rounded-full border-2 border-red-500 text-[10px] font-bold">!</span>
+                      {error}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Footer - Fixed at bottom */}
+            <div className="flex-shrink-0 p-3 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-background-light/30 dark:bg-background-dark/30 backdrop-blur-md z-10">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-95"
+              >
+                <RotateCcw className="size-4" />
+                Reset
+              </button>
+
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || success}
+                  className={`flex items-center gap-3 px-10 py-3 rounded-full text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all active:scale-95 ${
+                    success
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-primary hover:bg-primary-hover hover:shadow-primary/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="size-5 animate-spin" />
+                      Creating...
+                    </>
+                  ) : success ? (
+                    <>
+                      <CheckCircle className="size-5" />
+                      Saved!
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="size-5" />
+                      Create Character
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

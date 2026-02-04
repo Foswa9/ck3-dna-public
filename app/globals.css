@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101922;
+  
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1b2531;
+  
+  --color-primary: #137fec;
+  --color-primary-hover: #1170d2;
+  
+  --color-border-light: #e5e7eb;
+  --color-border-dark: #2d3845;
+  
+  --color-text-main-light: #111827;
+  --color-text-main-dark: #ffffff;
+  
+  --color-text-sub-light: #6b7280;
+  --color-text-sub-dark: #9ca3af;
+
+  --font-display: var(--font-inter), "Inter", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+/* Base styles to apply default background and text colors */
+@layer base {
+  body {
+    @apply bg-background-light text-text-main-light;
+  }
+  .dark body {
+    @apply bg-background-dark text-text-main-dark;
+  }
+}
