@@ -222,7 +222,6 @@ export default function CharacterDetail() {
             mainImage: character.mainImage,
             tags: character.tags,
           }}
-          additionalImages={additionalImages}
           onUpdate={(updatedData) => setCharacter((prev) => prev ? { ...prev, ...updatedData } : null)}
         />
       )}

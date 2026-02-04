@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Check, Upload, Loader2, ImageOff } from "lucide-react";
+import { X, Check, Upload, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../../lib/firebase";
@@ -10,26 +10,23 @@ interface ImagePickerModalProps {
   onClose: () => void;
   onSelect: (imagePath: string) => void;
   selectedImage: string | null;
-  mainImage?: string;
-  additionalImages?: string[];
 }
+
+const PUBLIC_IMAGES = [
+  { name: "Regina", path: "/regina.jpg" },
+  { name: "random", path: "/20260112210941_1.jpg" },
+  { name: "two", path: "/20260105195117_1.jpg" },
+  { name: "three", path: "/20251226192308_1.jpg" },
+  { name: "four", path: "/20251217232757_1.jpg" },
+  { name: "five", path: "/20251020005814_1.jpg" },
+];
 
 export default function ImagePickerModal({
   isOpen,
   onClose,
   onSelect,
   selectedImage,
-  mainImage,
-  additionalImages = [],
 }: ImagePickerModalProps) {
-  // Combine mainImage and additionalImages into a single array
-  const availableImages = [
-    ...(mainImage ? [{ name: "Main Portrait", path: mainImage }] : []),
-    ...additionalImages.map((img, idx) => ({ 
-      name: `Image ${idx + 1}`, 
-      path: img 
-    })),
-  ];
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,14 +112,7 @@ export default function ImagePickerModal({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {availableImages.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center py-12 text-text-sub-light dark:text-text-sub-dark">
-                  <ImageOff className="size-12 mb-4 opacity-50" />
-                  <p className="text-sm font-medium">No images available</p>
-                  <p className="text-xs mt-1">Upload a new image to get started</p>
-                </div>
-              ) : (
-                availableImages.map((img) => (
+              {PUBLIC_IMAGES.map((img) => (
                 <button
                   key={img.path}
                   onClick={() => {
@@ -158,8 +148,7 @@ export default function ImagePickerModal({
                     </p>
                   </div>
                 </button>
-              ))
-              )}
+              ))}
             </div>
           </div>
 
