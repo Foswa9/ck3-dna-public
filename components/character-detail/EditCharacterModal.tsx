@@ -46,6 +46,7 @@ export default function EditCharacterModal({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  
   // Sync state if initialData changes
   useEffect(() => {
     setFormData({ ...initialData });
