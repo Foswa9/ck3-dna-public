@@ -72,8 +72,17 @@ export default function CreateCharacterModal({
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
-      if (selectedTags.length >= 4) return;
-      setSelectedTags([...selectedTags, tag]);
+      let newTags = [...selectedTags];
+      
+      // Enforce mutual exclusivity for Gender
+      if (tag === "Male") {
+        newTags = newTags.filter(t => t !== "Female");
+      } else if (tag === "Female") {
+        newTags = newTags.filter(t => t !== "Male");
+      }
+
+      if (newTags.length >= 4) return;
+      setSelectedTags([...newTags, tag]);
     }
   };
 

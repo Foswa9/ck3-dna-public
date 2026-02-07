@@ -94,14 +94,14 @@ export default function CharacterGrid({ searchQuery }: CharacterGridProps) {
         </div>
       )}
 
-      {/* Load More button (placeholder logic for now) */}
+      {/* Load More button (placeholder logic for now)
       {filteredCharacters.length > 0 && (
         <div className="mt-12 flex justify-center">
           <button className="px-8 py-3 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
             Load More Characters
           </button>
         </div>
-      )}
+      )} */}
 
       <DNAModal
         isOpen={selectedCharacter !== null}
