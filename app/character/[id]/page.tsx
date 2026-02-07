@@ -220,6 +220,7 @@ export default function CharacterDetail() {
             description: character.description,
             dnaCode: character.dnaCode,
             mainImage: character.mainImage,
+            additionalImages: additionalImages,
             tags: character.tags,
           }}
           onUpdate={(updatedData) => setCharacter((prev) => prev ? { ...prev, ...updatedData } : null)}

@@ -10,22 +10,15 @@ interface ImagePickerModalProps {
   onClose: () => void;
   onSelect: (imagePath: string) => void;
   selectedImage: string | null;
+  characterImages?: string[];
 }
-
-const PUBLIC_IMAGES = [
-  { name: "Regina", path: "/regina.jpg" },
-  { name: "random", path: "/20260112210941_1.jpg" },
-  { name: "two", path: "/20260105195117_1.jpg" },
-  { name: "three", path: "/20251226192308_1.jpg" },
-  { name: "four", path: "/20251217232757_1.jpg" },
-  { name: "five", path: "/20251020005814_1.jpg" },
-];
 
 export default function ImagePickerModal({
   isOpen,
   onClose,
   onSelect,
   selectedImage,
+  characterImages,
 }: ImagePickerModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,43 +105,49 @@ export default function ImagePickerModal({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {PUBLIC_IMAGES.map((img) => (
-                <button
-                  key={img.path}
-                  onClick={() => {
-                    onSelect(img.path);
-                    onClose();
-                  }}
-                  className={`group relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImage === img.path
-                      ? "border-primary ring-4 ring-primary/20"
-                      : "border-transparent hover:border-primary/50"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img.path}
-                    alt={img.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
-                    selectedImage === img.path ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  }`}>
-                    {selectedImage === img.path ? (
-                      <div className="size-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
-                        <Check className="size-6" />
+              {/* Character specific images */}
+              {characterImages && characterImages.length > 0 ? (
+                 characterImages.map((img, index) => (
+                    <button
+                      key={`char-img-${index}`}
+                      onClick={() => {
+                        onSelect(img);
+                        onClose();
+                      }}
+                      className={`group relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedImage === img
+                          ? "border-primary ring-4 ring-primary/20"
+                          : "border-transparent hover:border-primary/50"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img}
+                        alt={`Character Image ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                        selectedImage === img ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}>
+                        {selectedImage === img ? (
+                          <div className="size-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+                            <Check className="size-6" />
+                          </div>
+                        ) : (
+                          <span className="text-white text-xs font-bold uppercase tracking-widest">Select</span>
+                        )}
                       </div>
-                    ) : (
-                      <span className="text-white text-xs font-bold uppercase tracking-widest">Select</span>
-                    )}
-                  </div>
-                  <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                    <p className="text-[10px] text-white font-bold uppercase tracking-tight truncate">
-                      {img.name}
+                    </button>
+                  ))
+              ) : (
+                 <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                    <p className="text-text-sub-light dark:text-text-sub-dark text-sm">
+                       No images found for this character.
+                       <br />
+                       Upload a new image to select it.
                     </p>
-                  </div>
-                </button>
-              ))}
+                 </div>
+              )}
             </div>
           </div>
 

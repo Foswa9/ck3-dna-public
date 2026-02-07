@@ -20,6 +20,7 @@ interface EditCharacterModalProps {
       position?: string;
     };
     tags: string[];
+    additionalImages?: string[];
   };
   onUpdate: (updatedData: any) => void;
 }
@@ -383,6 +384,10 @@ export default function EditCharacterModal({
         onClose={() => setIsImagePickerOpen(false)}
         onSelect={(path) => setMainImageUrl(path)}
         selectedImage={mainImageUrl}
+        characterImages={Array.from(new Set([
+          initialData.mainImage?.url,
+          ...(initialData.additionalImages || [])
+        ].filter(Boolean) as string[]))}
       />
     </>
   );
