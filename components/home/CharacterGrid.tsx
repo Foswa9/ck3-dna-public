@@ -16,14 +16,16 @@ interface Character {
     position?: string;
   };
   tags: string[];
+  characterType?: string;
   game?: string; // Optional in our local type, mapped from tags or existing field
 }
 
 interface CharacterGridProps {
   searchQuery: string;
+  selectedType: "All" | "Historical" | "Community";
 }
 
-export default function CharacterGrid({ searchQuery }: CharacterGridProps) {
+export default function CharacterGrid({ searchQuery, selectedType }: CharacterGridProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null
@@ -41,6 +43,7 @@ export default function CharacterGrid({ searchQuery }: CharacterGridProps) {
           dnaCode: data.dnaCode,
           mainImage: data.mainImage,
           tags: data.tags || [],
+          characterType: data.characterType,
           // Map first tag to "game" prop for UI consistency, or default string
           game: data.tags?.[0] || "Custom Character", 
           ...data,
@@ -59,7 +62,10 @@ export default function CharacterGrid({ searchQuery }: CharacterGridProps) {
     const matchesTags = char.tags?.some((tag) =>
       tag.toLowerCase().includes(query)
     );
-    return matchesName || matchesTags;
+    const matchesSearch = matchesName || matchesTags;
+
+    if (selectedType === "All") return matchesSearch;
+    return matchesSearch && char.characterType === selectedType;
   });
 
   if (loading) {

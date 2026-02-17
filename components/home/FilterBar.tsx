@@ -1,32 +1,41 @@
-import { ChevronDown, ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Search } from "lucide-react";
 
 interface FilterBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  selectedType: "All" | "Historical" | "Community";
+  onTypeChange: (type: "All" | "Historical" | "Community") => void;
 }
 
-export default function FilterBar({ searchQuery, onSearchChange }: FilterBarProps) {
+export default function FilterBar({ searchQuery, onSearchChange, selectedType, onTypeChange }: FilterBarProps) {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 pb-4 border-b border-border-light dark:border-border-dark">
       {/* Filters */}
-      {/* <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-hide">
+      {/* Filters */}
+      <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-hide">
         <span className="text-text-main-light dark:text-text-main-dark font-semibold text-sm mr-2 whitespace-nowrap">
           Filter by:
         </span>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary text-white shadow-sm transition-colors whitespace-nowrap">
-          All Games
-          <ChevronDown className="size-4" />
-        </button>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark border border-border-light dark:border-border-dark transition-colors whitespace-nowrap">
-          Fantasy
-        </button>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark border border-border-light dark:border-border-dark transition-colors whitespace-nowrap">
-          Sci-Fi
-        </button>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark border border-border-light dark:border-border-dark transition-colors whitespace-nowrap">
-          Modern
-        </button>
-      </div> */}
+        {(['All', 'Historical', 'Community'] as const).map((type) => (
+          <button
+            key={type}
+            onClick={() => {
+              if (selectedType === type) {
+                onTypeChange("All");
+              } else {
+                onTypeChange(type);
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+              selectedType === type
+                ? "bg-primary text-white shadow-sm"
+                : "bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark border border-border-light dark:border-border-dark"
+            }`}
+          >
+            {type === 'All' ? 'All Characters' : type}
+          </button>
+        ))}
+      </div>
 
       {/* Search & Sort */}
       <div className="flex items-center gap-4 w-full sm:w-auto">
