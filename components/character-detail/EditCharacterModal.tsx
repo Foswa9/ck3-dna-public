@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Save, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Pencil } from "lucide-react";
+import { X, Save, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Pencil, Plus } from "lucide-react";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ImagePickerModal from "./ImagePickerModal";
+import TraitPickerModal from "./TraitPickerModal";
+
+interface TraitItem {
+  name: string;
+  url: string;
+}
 
 interface EditCharacterModalProps {
   isOpen: boolean;
@@ -21,6 +27,7 @@ interface EditCharacterModalProps {
     };
     tags: string[];
     additionalImages?: string[];
+    personalityTraits?: TraitItem[];
   };
   onUpdate: (updatedData: any) => void;
 }
@@ -45,6 +52,10 @@ export default function EditCharacterModal({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  // Personality Traits
+  const [personalityTraits, setPersonalityTraits] = useState<TraitItem[]>(initialData.personalityTraits || []);
+  const [isTraitPickerOpen, setIsTraitPickerOpen] = useState(false);
+
   
   // Sync state if initialData changes
   useEffect(() => {
@@ -52,6 +63,7 @@ export default function EditCharacterModal({
     setSelectedTags(initialData.tags || []);
     setMainImageUrl(initialData.mainImage?.url || "");
     setImagePosition(initialData.mainImage?.position || "50% 50%");
+    setPersonalityTraits(initialData.personalityTraits || []);
   }, [initialData]);
 
   if (!isOpen) return null;
@@ -106,11 +118,14 @@ export default function EditCharacterModal({
       if (!formData.name.trim()) throw new Error("Name is required.");
       if (!formData.dnaCode.trim()) throw new Error("DNA String is required.");
 
+      const savedTraits = personalityTraits;
+
       const updatedData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         dnaCode: formData.dnaCode.trim(),
         tags: selectedTags,
+        personalityTraits: savedTraits,
         mainImage: {
           url: mainImageUrl,
           thumbnailUrl: mainImageUrl,
@@ -143,7 +158,16 @@ export default function EditCharacterModal({
     setSelectedTags(initialData.tags || []);
     setMainImageUrl(initialData.mainImage?.url || "");
     setImagePosition(initialData.mainImage?.position || "50% 50%");
+    setPersonalityTraits(initialData.personalityTraits || []);
     setError("");
+  };
+
+  const handleTraitsConfirm = (traits: TraitItem[]) => {
+    setPersonalityTraits(traits);
+  };
+
+  const handleRemoveTrait = (index: number) => {
+    setPersonalityTraits(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -308,6 +332,48 @@ export default function EditCharacterModal({
                       />
                     </div>
 
+                    {/* Personality Traits */}
+                    <div className="mb-8">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                        Personality Traits
+                      </label>
+                      <div className="flex flex-wrap gap-3 items-start">
+                        {personalityTraits.map((trait, index) => (
+                          <div key={`${trait.url}-${index}`} className="relative group/trait">
+                            <div className="size-20 sm:size-24 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-md overflow-hidden p-1.5">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={trait.url}
+                                alt={trait.name}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            {/* Trait name */}
+                            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark whitespace-nowrap capitalize">
+                              {trait.name}
+                            </span>
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleRemoveTrait(index); }}
+                              className="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold opacity-0 group-hover/trait:opacity-100 transition-opacity shadow-md hover:scale-110"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        {/* Open Picker button */}
+                        <button
+                          type="button"
+                          onClick={() => setIsTraitPickerOpen(true)}
+                          className="size-20 sm:size-24 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-1 text-text-sub-light/50 dark:text-text-sub-dark/50 hover:border-primary/50 hover:text-primary transition-all duration-200"
+                        >
+                          <Plus className="size-5" />
+                          <span className="text-[8px] font-bold uppercase tracking-widest">{personalityTraits.length > 0 ? 'Edit' : 'Add'}</span>
+                        </button>
+                      </div>
+                    </div>
+
                     {/* DNA */}
                     <div className="mb-8 group/dna">
                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
@@ -397,6 +463,13 @@ export default function EditCharacterModal({
           initialData.mainImage?.url,
           ...(initialData.additionalImages || [])
         ].filter(Boolean) as string[]))}
+      />
+
+      <TraitPickerModal
+        isOpen={isTraitPickerOpen}
+        onClose={() => setIsTraitPickerOpen(false)}
+        onConfirm={handleTraitsConfirm}
+        alreadySelected={personalityTraits}
       />
     </>
   );

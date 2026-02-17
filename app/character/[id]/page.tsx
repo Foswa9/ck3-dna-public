@@ -32,6 +32,7 @@ interface Character {
   })[];
   description: string;
   tags: string[];
+  personalityTraits?: { name: string; url: string }[];
   stats?: {
     views: number;
     copies: number;
@@ -200,6 +201,32 @@ export default function CharacterDetail() {
               </p>
             </div>
 
+            {/* Personality Traits */}
+            {character.personalityTraits && character.personalityTraits.length > 0 && (
+              <div className="mb-8">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                  Personality Traits
+                </span>
+                <div className="flex flex-wrap gap-4">
+                  {character.personalityTraits.map((trait, idx) => (
+                    <div key={idx} className="flex flex-col items-center gap-2">
+                      <div className="size-16 sm:size-20 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm overflow-hidden p-1.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={trait.url}
+                          alt={trait.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark capitalize">
+                        {trait.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Primary Action */}
             <DNABlock dna={character.dnaCode} />
 
@@ -222,6 +249,7 @@ export default function CharacterDetail() {
             mainImage: character.mainImage,
             additionalImages: additionalImages,
             tags: character.tags,
+            personalityTraits: character.personalityTraits,
           }}
           onUpdate={(updatedData) => setCharacter((prev) => prev ? { ...prev, ...updatedData } : null)}
         />

@@ -12,6 +12,7 @@ interface CreateCharacterModalProps {
 }
 
 const AVAILABLE_TAGS = ["Female", "Male"];
+const CHARACTER_TYPES = ["Historical", "Community", "Personal"] as const;
 
 export default function CreateCharacterModal({
   isOpen,
@@ -23,6 +24,7 @@ export default function CreateCharacterModal({
     dnaCode: "",
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [characterType, setCharacterType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
@@ -106,6 +108,7 @@ export default function CreateCharacterModal({
   const handleReset = () => {
     setFormData({ name: "", description: "", dnaCode: "" });
     setSelectedTags([]);
+    setCharacterType("");
     setImageFile(null);
     setImagePreview(null);
     setError("");
@@ -149,6 +152,7 @@ export default function CreateCharacterModal({
         name: formData.name.trim(),
         description: formData.description.trim(),
         dnaCode: formData.dnaCode.trim(),
+        characterType: characterType,
         mainImage: {
           url: downloadURL,
           thumbnailUrl: downloadURL,
@@ -290,6 +294,29 @@ export default function CreateCharacterModal({
                 {/* Right Column: Details & Actions */}
                 <div className="lg:col-span-7 flex flex-col justify-start">
                   
+                  {/* Character Type Select */}
+                  <div className="mb-6">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
+                      Character Type
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {CHARACTER_TYPES.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setCharacterType(type)}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                            characterType === type
+                              ? "bg-primary text-white shadow-md shadow-primary/30 -translate-y-0.5"
+                              : "bg-background-light dark:bg-background-dark/50 text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary hover:text-primary"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Tag Multi-Select */}
                   <div className="mb-6">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
