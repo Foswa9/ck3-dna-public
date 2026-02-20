@@ -5,6 +5,7 @@ import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Link as
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 interface CreateCharacterModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function CreateCharacterModal({
   isOpen,
   onClose,
 }: CreateCharacterModalProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -184,6 +186,7 @@ export default function CreateCharacterModal({
           grokepedia: grokepediaUrl.trim() || null,
           youtube: youtubeVideos.filter(v => v.trim()),
         },
+        createdBy: user?.email || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };

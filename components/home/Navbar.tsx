@@ -39,13 +39,13 @@ export default function Navbar() {
                 Tools
               </Link>
               <Link
-                href="#"
+                href="/historical-characters"
                 className="text-text-sub-light dark:text-text-sub-dark font-medium text-sm hover:text-primary dark:hover:text-primary transition-colors"
               >
                 Historical Characters
               </Link>
               <Link
-                href="#"
+                href="/custom-characters"
                 className="text-text-sub-light dark:text-text-sub-dark font-medium text-sm hover:text-primary dark:hover:text-primary transition-colors"
               >
                 Custom Characters

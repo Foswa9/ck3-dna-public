@@ -58,7 +58,7 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-2">
           <Link href="/" className="flex items-center gap-2 mb-6 group">
             <div className="flex items-center justify-center size-10 rounded-lg bg-primary text-white shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow">
               <Fingerprint className="size-6" />
@@ -67,12 +67,6 @@ export default function LoginPage() {
               CK3 DNA
             </span>
           </Link>
-          <h1 className="text-2xl font-bold text-text-main-light dark:text-text-main-dark">
-            Welcome back
-          </h1>
-          <p className="text-text-sub-light dark:text-text-sub-dark mt-1 text-sm">
-            Sign in to your account to continue
-          </p>
         </div>
 
         {/* Card */}
