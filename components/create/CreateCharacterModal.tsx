@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Link as LinkIcon, Youtube, Book, ExternalLink, Plus } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -27,6 +27,16 @@ export default function CreateCharacterModal({
   const [characterType, setCharacterType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // External Links State
+  const [wikipediaUrl, setWikipediaUrl] = useState("");
+  const [grokepediaUrl, setGrokepediaUrl] = useState("");
+  const [youtubeVideos, setYoutubeVideos] = useState<string[]>([]);
+  
+  // Toggle states for link panels
+  const [showWikipedia, setShowWikipedia] = useState(false);
+  const [showGrokepedia, setShowGrokepedia] = useState(false);
+  const [showYoutube, setShowYoutube] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -111,6 +121,12 @@ export default function CreateCharacterModal({
     setCharacterType("");
     setImageFile(null);
     setImagePreview(null);
+    setWikipediaUrl("");
+    setGrokepediaUrl("");
+    setYoutubeVideos([]);
+    setShowWikipedia(false);
+    setShowGrokepedia(false);
+    setShowYoutube(false);
     setError("");
   };
 
@@ -162,6 +178,11 @@ export default function CreateCharacterModal({
         stats: {
           views: 0,
           copies: 0,
+        },
+        links: {
+          wikipedia: wikipediaUrl.trim() || null,
+          grokepedia: grokepediaUrl.trim() || null,
+          youtube: youtubeVideos.filter(v => v.trim()),
         },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -236,7 +257,7 @@ export default function CreateCharacterModal({
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative w-full aspect-[3/4] rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-300 group shadow-lg ${
+                    className={`relative w-full max-w-[340px] mx-auto aspect-[3/4] rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-300 group shadow-lg ${
                       isDragging
                         ? "border-primary bg-primary/10 scale-[1.02]"
                         : imagePreview 
@@ -362,6 +383,140 @@ export default function CreateCharacterModal({
                       className="w-full bg-transparent border-none p-0 text-base text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed placeholder:text-text-sub-light/40 dark:placeholder:text-text-sub-dark/40 focus:ring-0 outline-none resize-none"
                       placeholder="Add a brief backstory or description for this character..."
                     />
+                  </div>
+
+                  {/* External Links & Media */}
+                  <div className="mb-6">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
+                      External Links & Media
+                    </label>
+                    
+                    {/* Link Toggle Buttons */}
+                    <div className="flex flex-wrap gap-2.5 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowWikipedia(!showWikipedia)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                          showWikipedia
+                            ? "bg-primary/20 text-primary border border-primary/50"
+                            : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary/50 hover:text-primary"
+                        }`}
+                      >
+                        <Book className="size-3.5" />
+                        Wikipedia
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setShowGrokepedia(!showGrokepedia)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                          showGrokepedia
+                            ? "bg-purple-500/20 text-purple-500 border border-purple-500/50"
+                            : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-purple-500/50 hover:text-purple-500"
+                        }`}
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Grokepedia
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowYoutube(!showYoutube);
+                          if (!showYoutube && youtubeVideos.length === 0) {
+                            setYoutubeVideos([""]); // Start with one empty input
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                          showYoutube
+                            ? "bg-red-500/20 text-red-500 border border-red-500/50"
+                            : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-red-500/50 hover:text-red-500"
+                        }`}
+                      >
+                        <Youtube className="size-3.5" />
+                        YouTube
+                      </button>
+                    </div>
+
+                    {/* Link Input Fields */}
+                    <div className="space-y-3">
+                      {showWikipedia && (
+                        <div className="relative group/link animate-in fade-in slide-in-from-top-1">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Book className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/link:text-primary transition-colors" />
+                          </div>
+                          <input
+                            type="url"
+                            value={wikipediaUrl}
+                            onChange={(e) => setWikipediaUrl(e.target.value)}
+                            placeholder="https://en.wikipedia.org/wiki/..."
+                            className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl py-2.5 pl-10 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                          />
+                        </div>
+                      )}
+
+                      {showGrokepedia && (
+                        <div className="relative group/link animate-in fade-in slide-in-from-top-1">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <ExternalLink className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/link:text-purple-500 transition-colors" />
+                          </div>
+                          <input
+                            type="url"
+                            value={grokepediaUrl}
+                            onChange={(e) => setGrokepediaUrl(e.target.value)}
+                            placeholder="https://grokepedia.com/wiki/..."
+                            className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl py-2.5 pl-10 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                          />
+                        </div>
+                      )}
+
+                      {showYoutube && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 p-3 rounded-xl bg-surface-light/50 dark:bg-surface-dark/50 border border-border-light dark:border-border-dark">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-text-sub-light dark:text-text-sub-dark">YouTube Videos</span>
+                            <button
+                              type="button"
+                              onClick={() => setYoutubeVideos([...youtubeVideos, ""])}
+                              className="text-[9px] font-bold uppercase tracking-wider text-primary hover:text-primary-hover flex items-center gap-1"
+                            >
+                              <Plus className="size-3" /> Add Link
+                            </button>
+                          </div>
+                          
+                          {youtubeVideos.map((url, index) => (
+                            <div key={index} className="flex items-center gap-2 group/yt relative">
+                              <div className="relative flex-1 group/input">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <Youtube className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/input:text-red-500 transition-colors" />
+                                </div>
+                                <input
+                                  type="url"
+                                  value={url}
+                                  onChange={(e) => {
+                                    const newVideos = [...youtubeVideos];
+                                    newVideos[index] = e.target.value;
+                                    setYoutubeVideos(newVideos);
+                                  }}
+                                  placeholder="https://youtube.com/watch?v=..."
+                                  className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg py-2 pl-9 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newVideos = youtubeVideos.filter((_, i) => i !== index);
+                                  setYoutubeVideos(newVideos.length ? newVideos : [""]);
+                                }}
+                                className="p-2 rounded-lg text-text-sub-light/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                title="Remove link"
+                              >
+                                <X className="size-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* DNA String Input - Styled like code block */}

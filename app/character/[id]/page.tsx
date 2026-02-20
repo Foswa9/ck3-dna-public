@@ -15,7 +15,7 @@ import TagCloud from "@/components/character-detail/TagCloud";
 import EditCharacterModal from "@/components/character-detail/EditCharacterModal";
 import DeleteCharacterModal from "@/components/character-detail/DeleteCharacterModal";
 import UploadAdditionalImagesModal from "@/components/character-detail/UploadAdditionalImagesModal";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, Youtube, Book } from "lucide-react";
 
 interface Character {
   name: string;
@@ -36,6 +36,11 @@ interface Character {
   stats?: {
     views: number;
     copies: number;
+  };
+  links?: {
+    wikipedia?: string;
+    grokepedia?: string;
+    youtube?: string[];
   };
 }
 
@@ -159,24 +164,66 @@ export default function CharacterDetail() {
           <div className="lg:col-span-9 flex flex-col justify-start pt-2 lg:pl-4">
             {/* Header */}
             <div className="mb-8">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
-                  {character.tags?.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${
-                        idx === 0
-                          ? "bg-primary/20 text-primary"
-                          : "bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark"
-                      }`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-col gap-4 mb-4">
+                {/* External Links */}
+                {(character.links?.wikipedia || character.links?.grokepedia || (character.links?.youtube && character.links.youtube.length > 0)) && (
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {character.links.wikipedia && (
+                      <a
+                        href={character.links.wikipedia}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/50 transition-all"
+                      >
+                        <Book className="size-3.5" />
+                        Wikipedia
+                      </a>
+                    )}
+                    {character.links.grokepedia && (
+                      <a
+                        href={character.links.grokepedia}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-500 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Grokepedia
+                      </a>
+                    )}
+                    {character.links.youtube?.map((url, index) => (
+                      <a
+                        key={`yt-${index}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                      >
+                        <Youtube className="size-3.5" />
+                        YouTube
+                        {character.links!.youtube!.length > 1 && <span className="opacity-70">#{index + 1}</span>}
+                      </a>
+                    ))}
+                  </div>
+                )}
                 
-                <div className="flex items-center gap-2">
-                   <button
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    {character.tags?.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${
+                          idx === 0
+                            ? "bg-primary/20 text-primary"
+                            : "bg-background-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark"
+                        }`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                     <button
                     onClick={() => setIsEditModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-sub-light dark:text-text-sub-dark hover:border-primary hover:text-primary transition-all shadow-sm active:scale-95"
                   >
@@ -192,8 +239,9 @@ export default function CharacterDetail() {
                   </button>
                 </div>
               </div>
+            </div>
               
-              <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] mb-4 text-text-main-light dark:text-text-main-dark">
+            <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] mb-4 text-text-main-light dark:text-text-main-dark">
                 {character.name}
               </h1>
               <p className="text-lg text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed max-w-2xl">
@@ -250,6 +298,7 @@ export default function CharacterDetail() {
             additionalImages: additionalImages,
             tags: character.tags,
             personalityTraits: character.personalityTraits,
+            links: character.links,
           }}
           onUpdate={(updatedData) => setCharacter((prev) => prev ? { ...prev, ...updatedData } : null)}
         />

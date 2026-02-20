@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Save, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Pencil, Plus } from "lucide-react";
+import { X, Save, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Pencil, Plus, Link as LinkIcon, Youtube, Book, ExternalLink } from "lucide-react";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ImagePickerModal from "./ImagePickerModal";
@@ -28,6 +28,11 @@ interface EditCharacterModalProps {
     tags: string[];
     additionalImages?: string[];
     personalityTraits?: TraitItem[];
+    links?: {
+      wikipedia?: string;
+      grokepedia?: string;
+      youtube?: string[];
+    };
   };
   onUpdate: (updatedData: any) => void;
 }
@@ -45,6 +50,16 @@ export default function EditCharacterModal({
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData.tags || []);
   const [mainImageUrl, setMainImageUrl] = useState(initialData.mainImage?.url || "");
   const [imagePosition, setImagePosition] = useState(initialData.mainImage?.position || "50% 50%");
+  
+  // External Links State
+  const [wikipediaUrl, setWikipediaUrl] = useState(initialData.links?.wikipedia || "");
+  const [grokepediaUrl, setGrokepediaUrl] = useState(initialData.links?.grokepedia || "");
+  const [youtubeVideos, setYoutubeVideos] = useState<string[]>(initialData.links?.youtube || []);
+  
+  // Toggle states for link panels
+  const [showWikipedia, setShowWikipedia] = useState(!!initialData.links?.wikipedia);
+  const [showGrokepedia, setShowGrokepedia] = useState(!!initialData.links?.grokepedia);
+  const [showYoutube, setShowYoutube] = useState(initialData.links?.youtube && initialData.links.youtube.length > 0);
   
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
@@ -64,6 +79,14 @@ export default function EditCharacterModal({
     setMainImageUrl(initialData.mainImage?.url || "");
     setImagePosition(initialData.mainImage?.position || "50% 50%");
     setPersonalityTraits(initialData.personalityTraits || []);
+    
+    setWikipediaUrl(initialData.links?.wikipedia || "");
+    setGrokepediaUrl(initialData.links?.grokepedia || "");
+    setYoutubeVideos(initialData.links?.youtube || []);
+    
+    setShowWikipedia(!!initialData.links?.wikipedia);
+    setShowGrokepedia(!!initialData.links?.grokepedia);
+    setShowYoutube(initialData.links?.youtube && initialData.links.youtube.length > 0);
   }, [initialData]);
 
   if (!isOpen) return null;
@@ -126,6 +149,11 @@ export default function EditCharacterModal({
         dnaCode: formData.dnaCode.trim(),
         tags: selectedTags,
         personalityTraits: savedTraits,
+        links: {
+          wikipedia: wikipediaUrl.trim() || null,
+          grokepedia: grokepediaUrl.trim() || null,
+          youtube: youtubeVideos.filter(v => v.trim()),
+        },
         mainImage: {
           url: mainImageUrl,
           thumbnailUrl: mainImageUrl,
@@ -159,6 +187,12 @@ export default function EditCharacterModal({
     setMainImageUrl(initialData.mainImage?.url || "");
     setImagePosition(initialData.mainImage?.position || "50% 50%");
     setPersonalityTraits(initialData.personalityTraits || []);
+    setWikipediaUrl(initialData.links?.wikipedia || "");
+    setGrokepediaUrl(initialData.links?.grokepedia || "");
+    setYoutubeVideos(initialData.links?.youtube || []);
+    setShowWikipedia(!!initialData.links?.wikipedia);
+    setShowGrokepedia(!!initialData.links?.grokepedia);
+    setShowYoutube(initialData.links?.youtube && initialData.links.youtube.length > 0);
     setError("");
   };
 
@@ -205,6 +239,11 @@ export default function EditCharacterModal({
                   
                   {/* Left Column: Image Preview/Picker */}
                   <div className="lg:col-span-5 flex flex-col gap-4">
+                    <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
+                      <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
+                        <strong>Visual Precision:</strong> Drag the portrait to frame the character's face. This framing will be used in the gallery and list views.
+                      </p>
+                    </div>
                     <div className="space-y-3">
                       <div
                         onMouseDown={handlePanStart}
@@ -214,7 +253,7 @@ export default function EditCharacterModal({
                         onTouchStart={handlePanStart}
                         onTouchMove={handlePanMove}
                         onTouchEnd={handlePanEnd}
-                        className={`relative w-full aspect-[3/4] rounded-2xl border-2 transition-all duration-300 group shadow-lg overflow-hidden ${
+                        className={`relative w-full max-w-[340px] mx-auto aspect-[3/4] rounded-2xl border-2 transition-all duration-300 group shadow-lg overflow-hidden ${
                           isPanning ? "cursor-grabbing border-primary" : "cursor-grab border-transparent hover:border-primary/30"
                         }`}
                       >
@@ -269,16 +308,10 @@ export default function EditCharacterModal({
                         )}
                       </div>
                       
-                      <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark px-1">
+                      <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark px-1 max-w-[340px] mx-auto w-full">
                         <span>X: {imagePosition.split(' ')[0]}</span>
                         <span>Y: {imagePosition.split(' ')[1]}</span>
                       </div>
-                    </div>
-                    
-                    <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
-                      <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
-                        <strong>Visual Precision:</strong> Drag the portrait to frame the character's face. This framing will be used in the gallery and list views.
-                      </p>
                     </div>
                   </div>
 
@@ -371,6 +404,140 @@ export default function EditCharacterModal({
                           <Plus className="size-[18px]" />
                           <span className="text-[7px] font-bold uppercase tracking-widest">{personalityTraits.length > 0 ? 'Edit' : 'Add'}</span>
                         </button>
+                      </div>
+                    </div>
+
+                    {/* External Links & Media */}
+                    <div className="mb-6">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
+                        External Links & Media
+                      </label>
+                      
+                      {/* Link Toggle Buttons */}
+                      <div className="flex flex-wrap gap-2.5 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowWikipedia(!showWikipedia)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                            showWikipedia
+                              ? "bg-primary/20 text-primary border border-primary/50"
+                              : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary/50 hover:text-primary"
+                          }`}
+                        >
+                          <Book className="size-3.5" />
+                          Wikipedia
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setShowGrokepedia(!showGrokepedia)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                            showGrokepedia
+                              ? "bg-purple-500/20 text-purple-500 border border-purple-500/50"
+                              : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-purple-500/50 hover:text-purple-500"
+                          }`}
+                        >
+                          <ExternalLink className="size-3.5" />
+                          Grokepedia
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowYoutube(!showYoutube);
+                            if (!showYoutube && youtubeVideos.length === 0) {
+                              setYoutubeVideos([""]); // Start with one empty input
+                            }
+                          }}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                            showYoutube
+                              ? "bg-red-500/20 text-red-500 border border-red-500/50"
+                              : "bg-surface-light dark:bg-surface-dark text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-red-500/50 hover:text-red-500"
+                          }`}
+                        >
+                          <Youtube className="size-3.5" />
+                          YouTube
+                        </button>
+                      </div>
+
+                      {/* Link Input Fields */}
+                      <div className="space-y-3">
+                        {showWikipedia && (
+                          <div className="relative group/link animate-in fade-in slide-in-from-top-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Book className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/link:text-primary transition-colors" />
+                            </div>
+                            <input
+                              type="url"
+                              value={wikipediaUrl}
+                              onChange={(e) => setWikipediaUrl(e.target.value)}
+                              placeholder="https://en.wikipedia.org/wiki/..."
+                              className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl py-2.5 pl-10 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                            />
+                          </div>
+                        )}
+
+                        {showGrokepedia && (
+                          <div className="relative group/link animate-in fade-in slide-in-from-top-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <ExternalLink className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/link:text-purple-500 transition-colors" />
+                            </div>
+                            <input
+                              type="url"
+                              value={grokepediaUrl}
+                              onChange={(e) => setGrokepediaUrl(e.target.value)}
+                              placeholder="https://grokepedia.com/wiki/..."
+                              className="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl py-2.5 pl-10 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                            />
+                          </div>
+                        )}
+
+                        {showYoutube && (
+                          <div className="space-y-2 animate-in fade-in slide-in-from-top-1 p-3 rounded-xl bg-surface-light/50 dark:bg-surface-dark/50 border border-border-light dark:border-border-dark">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-bold text-text-sub-light dark:text-text-sub-dark">YouTube Videos</span>
+                              <button
+                                type="button"
+                                onClick={() => setYoutubeVideos([...youtubeVideos, ""])}
+                                className="text-[9px] font-bold uppercase tracking-wider text-primary hover:text-primary-hover flex items-center gap-1"
+                              >
+                                <Plus className="size-3" /> Add Link
+                              </button>
+                            </div>
+                            
+                            {youtubeVideos.map((url, index) => (
+                              <div key={index} className="flex items-center gap-2 group/yt relative">
+                                <div className="relative flex-1 group/input">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Youtube className="size-4 text-text-sub-light/50 dark:text-text-sub-dark/50 group-focus-within/input:text-red-500 transition-colors" />
+                                  </div>
+                                  <input
+                                    type="url"
+                                    value={url}
+                                    onChange={(e) => {
+                                      const newVideos = [...youtubeVideos];
+                                      newVideos[index] = e.target.value;
+                                      setYoutubeVideos(newVideos);
+                                    }}
+                                    placeholder="https://youtube.com/watch?v=..."
+                                    className="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg py-2 pl-9 pr-4 text-xs text-text-main-light dark:text-text-main-dark focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder:text-text-sub-light/30 dark:placeholder:text-text-sub-dark/30"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newVideos = youtubeVideos.filter((_, i) => i !== index);
+                                    setYoutubeVideos(newVideos.length ? newVideos : [""]);
+                                  }}
+                                  className="p-2 rounded-lg text-text-sub-light/50 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                  title="Remove link"
+                                >
+                                  <X className="size-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
 
