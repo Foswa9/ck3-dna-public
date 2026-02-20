@@ -48,7 +48,7 @@ export default function Navbar() {
                 href="/custom-characters"
                 className="text-text-sub-light dark:text-text-sub-dark font-medium text-sm hover:text-primary dark:hover:text-primary transition-colors"
               >
-                Custom Characters
+                Your Characters
               </Link>
               <button
                 onClick={() => setCreateModalOpen(true)}

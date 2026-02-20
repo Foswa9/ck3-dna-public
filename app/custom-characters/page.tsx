@@ -7,7 +7,9 @@ import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 import CharacterCard from "@/components/home/CharacterCard";
 import DNAModal from "@/components/home/DNAModal";
-import { Search } from "lucide-react";
+import { Search, LogIn } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 
 interface Character {
   id: string;
@@ -24,12 +26,19 @@ interface Character {
 }
 
 export default function CustomCharactersPage() {
+  const { user, loading: authLoading } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.email) {
+      setCharacters([]);
+      setLoading(false);
+      return;
+    }
+
     const q = query(collection(db, "characters"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const chars = snapshot.docs
@@ -46,13 +55,17 @@ export default function CustomCharactersPage() {
             ...data,
           };
         })
-        .filter((char) => char.characterType === "Personal") as Character[];
+        .filter(
+          (char) =>
+            char.characterType === "Personal" &&
+            (char as Character & { createdBy?: string }).createdBy === user.email
+        ) as Character[];
       setCharacters(chars);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const filteredCharacters = characters.filter((char) => {
     const q = searchQuery.toLowerCase();
@@ -91,9 +104,31 @@ export default function CustomCharactersPage() {
           </div>
 
           {/* Loading */}
-          {loading && (
+          {(loading || authLoading) && (
             <div className="flex justify-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          )}
+
+          {/* Not logged in */}
+          {!authLoading && !user && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <LogIn className="size-8 text-primary" />
+              </div>
+              <h2 className="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-2">
+                Sign in to view your characters
+              </h2>
+              <p className="text-text-sub-light dark:text-text-sub-dark text-sm mb-6 max-w-sm">
+                Log in to see and manage the personal characters you&apos;ve created.
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
+              >
+                <LogIn className="size-4" />
+                Log In
+              </Link>
             </div>
           )}
 
