@@ -206,14 +206,14 @@ export default function CreateCharacterModal({
       />
 
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col transform rounded-2xl bg-surface-light dark:bg-surface-dark shadow-2xl transition-all border border-border-light dark:border-border-dark overflow-hidden">
+        <div className="relative w-full max-w-7xl max-h-[90vh] flex flex-col transform rounded-2xl bg-surface-light dark:bg-surface-dark shadow-2xl transition-all border border-border-light dark:border-border-dark overflow-hidden">
           {/* Header - Fixed at top */}
-          <div className="flex-shrink-0 flex items-center justify-between border-b border-border-light dark:border-border-dark px-8 py-5 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+          <div className="flex-shrink-0 flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-4 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
             <div>
-              <h2 className="text-xl font-bold text-text-main-light dark:text-text-main-dark">
+              <h2 className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
                 Add a new character
               </h2>
-              <p className="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">
+              <p className="text-[10px] text-text-sub-light dark:text-text-sub-dark mt-0.5">
                 Add a new character to the DNA vault
               </p>
             </div>
@@ -221,17 +221,17 @@ export default function CreateCharacterModal({
               onClick={onClose}
               className="rounded-full p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:rotate-90"
             >
-              <X className="size-6" />
+              <X className="size-5" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             {/* Scrollable Body */}
-            <div className="p-8 lg:p-12 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="p-5 lg:p-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 {/* Left Column: Visuals (Image Upload) */}
-                <div className="lg:col-span-5 flex flex-col gap-6">
+                <div className="lg:col-span-5 flex flex-col gap-4">
                   <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -260,23 +260,23 @@ export default function CreateCharacterModal({
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
-                          <span className="text-sm font-semibold flex items-center gap-2">
+                          <span className="text-[13px] font-semibold flex items-center gap-2">
                             <Upload className="size-4" /> Change Image
                           </span>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center text-center p-6 text-text-sub-light dark:text-text-sub-dark pointer-events-none">
-                        <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
-                          <ImageIcon className={`size-10 ${isDragging ? "text-primary animate-pulse" : "text-primary/70"}`} />
+                        <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
+                          <ImageIcon className={`size-8 ${isDragging ? "text-primary animate-pulse" : "text-primary/70"}`} />
                         </div>
-                        <h3 className="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-1">
+                        <h3 className="text-base font-bold text-text-main-light dark:text-text-main-dark mb-1">
                           {isDragging ? "Drop to upload" : "Upload Character Image"}
                         </h3>
-                        <p className="text-sm max-w-[200px]">
+                        <p className="text-[13px] max-w-[200px] leading-snug">
                           Drag and drop or click to select your character portrait
                         </p>
-                        <span className="mt-4 text-[10px] uppercase tracking-widest font-bold opacity-60">
+                        <span className="mt-4 text-[9px] uppercase tracking-widest font-bold opacity-60">
                           JPG, PNG • Max 5MB
                         </span>
                       </div>
@@ -284,8 +284,8 @@ export default function CreateCharacterModal({
                   </div>
                   
                   {/* Additional Mini Help */}
-                  <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg">
-                    <p className="text-xs text-text-main-light dark:text-text-main-dark leading-relaxed">
+                  <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
+                    <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
                       <strong>Pro tip:</strong> Portraits from the Ruler Designer's portrait preview (3/4 aspect ratio) look best in this layout.
                     </p>
                   </div>
@@ -295,17 +295,17 @@ export default function CreateCharacterModal({
                 <div className="lg:col-span-7 flex flex-col justify-start">
                   
                   {/* Character Type Select */}
-                  <div className="mb-6">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
+                  <div className="mb-5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                       Character Type
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {CHARACTER_TYPES.map((type) => (
                         <button
                           key={type}
                           type="button"
                           onClick={() => setCharacterType(type)}
-                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                          className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
                             characterType === type
                               ? "bg-primary text-white shadow-md shadow-primary/30 -translate-y-0.5"
                               : "bg-background-light dark:bg-background-dark/50 text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary hover:text-primary"
@@ -318,17 +318,17 @@ export default function CreateCharacterModal({
                   </div>
 
                   {/* Tag Multi-Select */}
-                  <div className="mb-6">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                  <div className="mb-5">
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                       Select Categories
                     </span>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {AVAILABLE_TAGS.map((tag) => (
                         <button
                           key={tag}
                           type="button"
                           onClick={() => handleTagToggle(tag)}
-                          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                          className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
                             selectedTags.includes(tag)
                               ? "bg-primary text-white shadow-md shadow-primary/30 -translate-y-0.5"
                               : "bg-background-light dark:bg-background-dark/50 text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary hover:text-primary"
@@ -341,32 +341,32 @@ export default function CreateCharacterModal({
                   </div>
 
                   {/* Character Name Input */}
-                  <div className="mb-8">
+                  <div className="mb-1">
                     <input
                       type="text"
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-transparent border-none p-0 text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] text-text-main-light dark:text-text-main-dark placeholder:text-text-sub-light/20 dark:placeholder:text-text-sub-dark/20 focus:ring-0 outline-none"
+                      className="w-full bg-transparent border-none p-0 text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em] text-text-main-light dark:text-text-main-dark placeholder:text-text-sub-light/20 dark:placeholder:text-text-sub-dark/20 focus:ring-0 outline-none"
                       placeholder="Character Name *"
                     />
-                    <div className="h-0.5 w-12 bg-primary mt-2 rounded-full"></div>
+                    <div className="h-0.5 w-10 bg-primary mt-1.5 rounded-full"></div>
                   </div>
 
                   {/* Description Input */}
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      className="w-full bg-transparent border-none p-0 text-lg text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed placeholder:text-text-sub-light/40 dark:placeholder:text-text-sub-dark/40 focus:ring-0 outline-none resize-none"
+                      rows={2}
+                      className="w-full bg-transparent border-none p-0 text-base text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed placeholder:text-text-sub-light/40 dark:placeholder:text-text-sub-dark/40 focus:ring-0 outline-none resize-none"
                       placeholder="Add a brief backstory or description for this character..."
                     />
                   </div>
 
                   {/* DNA String Input - Styled like code block */}
-                  <div className="mb-8 group/dna">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                  <div className="mb-6 group/dna">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                       DNA String *
                     </label>
                     <div className="relative">
@@ -375,7 +375,7 @@ export default function CreateCharacterModal({
                         required
                         value={formData.dnaCode}
                         onChange={(e) => setFormData({ ...formData, dnaCode: e.target.value })}
-                        className="relative w-full bg-[#111418] border border-[#283039] rounded-xl p-6 font-mono text-xs sm:text-sm text-[#e2e8f0] focus:outline-none transition-all placeholder:text-[#4a5568] scrollbar-hide min-h-[200px]"
+                        className="relative w-full bg-[#111418] border border-[#283039] rounded-xl p-5 font-mono text-[10px] sm:text-xs text-[#e2e8f0] focus:outline-none transition-all placeholder:text-[#4a5568] scrollbar-hide min-h-[160px]"
                         placeholder="Paste the raw CK3 DNA string here..."
                       />
                     </div>
@@ -394,28 +394,28 @@ export default function CreateCharacterModal({
             </div>
 
             {/* Sticky Footer - Fixed at bottom */}
-            <div className="flex-shrink-0 p-3 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-background-light/30 dark:bg-background-dark/30 backdrop-blur-md z-10">
+            <div className="flex-shrink-0 p-3.5 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-background-light/30 dark:bg-background-dark/30 backdrop-blur-md z-10">
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-95"
+                className="flex items-center gap-2 px-5 py-2 text-sm font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-95"
               >
                 <RotateCcw className="size-4" />
                 Reset
               </button>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-all"
+                  className="px-5 py-2 text-sm font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading || success}
-                  className={`flex items-center gap-3 px-10 py-3 rounded-full text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all active:scale-95 ${
+                  className={`flex items-center gap-2.5 px-8 py-2.5 rounded-full text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all active:scale-95 ${
                     success
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary-hover hover:shadow-primary/20"
@@ -423,17 +423,17 @@ export default function CreateCharacterModal({
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="size-5 animate-spin" />
+                      <Loader2 className="size-[18px] animate-spin" />
                       Creating...
                     </>
                   ) : success ? (
                     <>
-                      <CheckCircle className="size-5" />
+                      <CheckCircle className="size-[18px]" />
                       Saved!
                     </>
                   ) : (
                     <>
-                      <Upload className="size-5" />
+                      <Upload className="size-[18px]" />
                       Create Character
                     </>
                   )}

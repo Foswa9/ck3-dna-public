@@ -179,14 +179,14 @@ export default function EditCharacterModal({
         />
 
         <div className="flex min-h-screen items-center justify-center p-4">
-          <div className="relative w-full max-w-6xl max-h-[90vh] flex flex-col transform rounded-2xl bg-surface-light dark:bg-surface-dark shadow-2xl transition-all border border-border-light dark:border-border-dark overflow-hidden">
+          <div className="relative w-full max-w-7xl max-h-[90vh] flex flex-col transform rounded-2xl bg-surface-light dark:bg-surface-dark shadow-2xl transition-all border border-border-light dark:border-border-dark overflow-hidden">
             {/* Header - Fixed at top */}
-            <div className="flex-shrink-0 flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-4 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+            <div className="flex-shrink-0 flex items-center justify-between border-b border-border-light dark:border-border-dark px-6 py-3.5 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
               <div>
-                <h2 className="text-xl font-bold text-text-main-light dark:text-text-main-dark">
+                <h2 className="text-lg font-bold text-text-main-light dark:text-text-main-dark">
                   Edit Character
                 </h2>
-                <p className="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">
+                <p className="text-[10px] text-text-sub-light dark:text-text-sub-dark mt-0.5">
                   Update character details and visuals
                 </p>
               </div>
@@ -194,18 +194,18 @@ export default function EditCharacterModal({
                 onClick={onClose}
                 className="rounded-full p-2 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:rotate-90"
               >
-                <X className="size-6" />
+                <X className="size-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
               {/* Scrollable Body */}
-              <div className="p-6 lg:p-8 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="p-5 lg:p-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   
                   {/* Left Column: Image Preview/Picker */}
                   <div className="lg:col-span-5 flex flex-col gap-4">
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div
                         onMouseDown={handlePanStart}
                         onMouseMove={handlePanMove}
@@ -230,29 +230,29 @@ export default function EditCharacterModal({
                             />
                             {/* Overlay Controls */}
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors pointer-events-none" />
-                            <div className="absolute top-4 right-4 flex flex-col gap-2">
+                            <div className="absolute top-3 right-3 flex flex-col gap-2">
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); setIsImagePickerOpen(true); }}
-                                className="size-10 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-primary shadow-lg hover:scale-110 transition-transform pointer-events-auto"
+                                className="size-9 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-primary shadow-lg hover:scale-110 transition-transform pointer-events-auto"
                                 title="Change Image"
                               >
-                                <Pencil className="size-5" />
+                                <Pencil className="size-[18px]" />
                               </button>
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); setImagePosition("50% 50%"); }}
-                                className="size-10 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-text-sub-light dark:text-text-sub-dark shadow-lg hover:scale-110 transition-transform pointer-events-auto"
+                                className="size-9 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-text-sub-light dark:text-text-sub-dark shadow-lg hover:scale-110 transition-transform pointer-events-auto"
                                 title="Reset Framing"
                               >
-                                <RotateCcw className="size-5" />
+                                <RotateCcw className="size-[18px]" />
                               </button>
                             </div>
                             
-                            <div className="absolute bottom-4 inset-x-4 pointer-events-none">
-                              <div className="bg-black/60 backdrop-blur-md rounded-lg p-3 text-white">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Interactive Framing</p>
-                                <p className="text-xs font-medium">Drag anywhere on the image to adjust focus</p>
+                            <div className="absolute bottom-3 inset-x-3 pointer-events-none">
+                              <div className="bg-black/60 backdrop-blur-md rounded-lg p-2.5 text-white">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-primary mb-0.5">Interactive Framing</p>
+                                <p className="text-[11px] font-medium leading-tight">Drag anywhere on the image to adjust focus</p>
                               </div>
                             </div>
                           </>
@@ -261,22 +261,22 @@ export default function EditCharacterModal({
                             onClick={() => setIsImagePickerOpen(true)}
                             className="flex flex-col items-center text-center p-6 text-text-sub-light dark:text-text-sub-dark w-full h-full justify-center bg-background-light dark:bg-background-dark/50 cursor-pointer"
                           >
-                            <ImageIcon className="size-10 text-primary/70 mb-4" />
-                            <h3 className="text-lg font-bold text-text-main-light dark:text-text-main-dark mb-1">
+                            <ImageIcon className="size-9 text-primary/70 mb-3" />
+                            <h3 className="text-base font-bold text-text-main-light dark:text-text-main-dark mb-1">
                               Click to Select Image
                             </h3>
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark px-1">
+                      <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark px-1">
                         <span>X: {imagePosition.split(' ')[0]}</span>
                         <span>Y: {imagePosition.split(' ')[1]}</span>
                       </div>
                     </div>
                     
-                    <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-4 rounded-r-lg">
-                      <p className="text-xs text-text-main-light dark:text-text-main-dark leading-relaxed">
+                    <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
+                      <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
                         <strong>Visual Precision:</strong> Drag the portrait to frame the character's face. This framing will be used in the gallery and list views.
                       </p>
                     </div>
@@ -286,17 +286,17 @@ export default function EditCharacterModal({
                   <div className="lg:col-span-7 flex flex-col justify-start">
                     
                     {/* Tags */}
-                    <div className="mb-6">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                    <div className="mb-5">
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                         Select Categories
                       </span>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {AVAILABLE_TAGS.map((tag) => (
                           <button
                             key={tag}
                             type="button"
                             onClick={() => handleTagToggle(tag)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+                            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
                               selectedTags.includes(tag)
                                 ? "bg-primary text-white shadow-md shadow-primary/30 -translate-y-0.5"
                                 : "bg-background-light dark:bg-background-dark/50 text-text-sub-light dark:text-text-sub-dark border border-border-light dark:border-border-dark hover:border-primary hover:text-primary"
@@ -309,38 +309,38 @@ export default function EditCharacterModal({
                     </div>
 
                     {/* Name */}
-                    <div className="mb-2">
+                    <div className="mb-1">
                       <input
                         type="text"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full bg-transparent border-none p-0 text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] text-text-main-light dark:text-text-main-dark focus:ring-0 outline-none"
+                        className="w-full bg-transparent border-none p-0 text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em] text-text-main-light dark:text-text-main-dark focus:ring-0 outline-none"
                         placeholder="Character Name *"
                       />
-                      <div className="h-0.5 w-12 bg-primary mt-2 rounded-full"></div>
+                      <div className="h-0.5 w-10 bg-primary mt-1.5 rounded-full"></div>
                     </div>
 
                     {/* Description */}
-                    <div className="mb-8">
+                    <div className="mb-6">
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={4}
-                        className="w-full bg-transparent border-none p-0 text-lg text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed focus:ring-0 outline-none resize-none"
+                        rows={3}
+                        className="w-full bg-transparent border-none p-0 text-base text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed focus:ring-0 outline-none resize-none"
                         placeholder="Character description..."
                       />
                     </div>
 
                     {/* Personality Traits */}
-                    <div className="mb-8">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                    <div className="mb-6">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                         Personality Traits
                       </label>
-                      <div className="flex flex-wrap gap-3 items-start">
+                      <div className="flex flex-wrap gap-2.5 items-start">
                         {personalityTraits.map((trait, index) => (
                           <div key={`${trait.url}-${index}`} className="relative group/trait">
-                            <div className="size-20 sm:size-24 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-md overflow-hidden p-1.5">
+                            <div className="size-16 sm:size-20 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-md overflow-hidden p-1.5">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={trait.url}
@@ -349,14 +349,14 @@ export default function EditCharacterModal({
                               />
                             </div>
                             {/* Trait name */}
-                            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark whitespace-nowrap capitalize">
+                            <span className="absolute -bottom-4.5 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-wider text-text-sub-light dark:text-text-sub-dark whitespace-nowrap capitalize">
                               {trait.name}
                             </span>
                             {/* Remove button */}
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleRemoveTrait(index); }}
-                              className="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold opacity-0 group-hover/trait:opacity-100 transition-opacity shadow-md hover:scale-110"
+                              className="absolute -top-1.5 -right-1.5 size-[18px] rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold opacity-0 group-hover/trait:opacity-100 transition-opacity shadow-md hover:scale-110"
                             >
                               ×
                             </button>
@@ -366,17 +366,17 @@ export default function EditCharacterModal({
                         <button
                           type="button"
                           onClick={() => setIsTraitPickerOpen(true)}
-                          className="size-20 sm:size-24 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-1 text-text-sub-light/50 dark:text-text-sub-dark/50 hover:border-primary/50 hover:text-primary transition-all duration-200"
+                          className="size-16 sm:size-20 rounded-xl border-2 border-dashed border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-1 text-text-sub-light/50 dark:text-text-sub-dark/50 hover:border-primary/50 hover:text-primary transition-all duration-200"
                         >
-                          <Plus className="size-5" />
-                          <span className="text-[8px] font-bold uppercase tracking-widest">{personalityTraits.length > 0 ? 'Edit' : 'Add'}</span>
+                          <Plus className="size-[18px]" />
+                          <span className="text-[7px] font-bold uppercase tracking-widest">{personalityTraits.length > 0 ? 'Edit' : 'Add'}</span>
                         </button>
                       </div>
                     </div>
 
                     {/* DNA */}
-                    <div className="mb-8 group/dna">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-4 block">
+                    <div className="mb-6 group/dna">
+                      <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
                         DNA String *
                       </label>
                       <div className="relative">
@@ -385,7 +385,7 @@ export default function EditCharacterModal({
                           required
                           value={formData.dnaCode}
                           onChange={(e) => setFormData({ ...formData, dnaCode: e.target.value })}
-                          className="relative w-full bg-[#111418] border border-[#283039] rounded-xl p-6 font-mono text-xs sm:text-sm text-[#e2e8f0] focus:outline-none placeholder:text-[#4a5568] scrollbar-hide min-h-[200px]"
+                          className="relative w-full bg-[#111418] border border-[#283039] rounded-xl p-5 font-mono text-[10px] sm:text-xs text-[#e2e8f0] focus:outline-none placeholder:text-[#4a5568] scrollbar-hide min-h-[160px]"
                         />
                       </div>
                     </div>
@@ -403,28 +403,28 @@ export default function EditCharacterModal({
               </div>
 
               {/* Sticky Footer - Fixed at bottom */}
-              <div className="flex-shrink-0 p-4 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-background-light/30 dark:bg-background-dark/30 backdrop-blur-md z-10">
+              <div className="flex-shrink-0 p-3.5 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-background-light/30 dark:bg-background-dark/30 backdrop-blur-md z-10">
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-95"
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-full transition-all active:scale-95"
                 >
                   <RotateCcw className="size-4" />
                   Reset
                 </button>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-2.5 text-sm font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-all"
+                    className="px-5 py-2 text-sm font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-text-main-dark transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading || success}
-                    className={`flex items-center gap-3 px-10 py-3 rounded-full text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all active:scale-95 ${
+                    className={`flex items-center gap-2.5 px-8 py-2.5 rounded-full text-sm font-black uppercase tracking-[0.1em] text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all active:scale-95 ${
                       success
                         ? "bg-green-500 hover:bg-green-600"
                         : "bg-primary hover:bg-primary-hover hover:shadow-primary/20"
@@ -432,17 +432,17 @@ export default function EditCharacterModal({
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="size-5 animate-spin" />
+                        <Loader2 className="size-[18px] animate-spin" />
                         Saving...
                       </>
                     ) : success ? (
                       <>
-                        <CheckCircle className="size-5" />
+                        <CheckCircle className="size-[18px]" />
                         Saved!
                       </>
                     ) : (
                       <>
-                        <Save className="size-5" />
+                        <Save className="size-[18px]" />
                         Save Changes
                       </>
                     )}
