@@ -126,19 +126,9 @@ export default function ToolsPage() {
                 </p>
             </div>
 
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
-            <div className="p-6 sm:p-8 space-y-8">
-              {/* Info Box */}
-              <div className="bg-primary/5 border-l-4 border-primary p-4 rounded-r">
-                <h3 className="text-primary font-bold mb-2">How to use:</h3>
-                <ul className="list-disc pl-5 text-text-sub-light dark:text-text-sub-dark space-y-1 text-sm">
-                  <li>Paste your CK3 Ruler Designer DNA code into the left box</li>
-                  <li>Click "Unify DNA" to process</li>
-                  <li>The unified DNA will appear on the right</li>
-                  <li>Copy the new converted DNA</li>
-                </ul>
-              </div>
-
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start">
+            <div className="flex-1 min-w-0 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+              <div className="p-6 sm:p-8 space-y-8">
               {/* I/O Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
@@ -204,7 +194,24 @@ export default function ToolsPage() {
                   {status.message}
                 </div>
               )}
+              </div>
             </div>
+
+            <aside className="w-full lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-24 self-start">
+              <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+                <div className="p-5 sm:p-6">
+                  <div className="bg-primary/5 border-l-4 border-primary p-4 rounded-r">
+                    <h3 className="text-primary font-bold mb-2">How to use</h3>
+                    <ul className="list-disc pl-5 text-text-sub-light dark:text-text-sub-dark space-y-1.5 text-sm">
+                      <li>Paste your CK3 Ruler Designer DNA code into the left box</li>
+                      <li>Click &quot;Unify DNA&quot; to process</li>
+                      <li>The unified DNA will appear on the right</li>
+                      <li>Copy the new converted DNA</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </main>
