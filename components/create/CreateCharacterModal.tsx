@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Link as LinkIcon, Youtube, Book, ExternalLink, Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { X, Upload, Loader2, CheckCircle, Image as ImageIcon, RotateCcw, Youtube, Book, ExternalLink, Plus, Pencil } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
@@ -14,6 +14,20 @@ interface CreateCharacterModalProps {
 
 const AVAILABLE_TAGS = ["Female", "Male"];
 const CHARACTER_TYPES = ["Historical", "Community", "Personal"] as const;
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+type AdditionalImageItem = {
+  id: string;
+  file: File;
+  previewUrl: string;
+};
+
+function makeAdditionalId() {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `img_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
 
 export default function CreateCharacterModal({
   isOpen,
@@ -29,7 +43,12 @@ export default function CreateCharacterModal({
   const [characterType, setCharacterType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
+  const [imagePosition, setImagePosition] = useState("50% 50%");
+  const [isPanning, setIsPanning] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const additionalImagesInputRef = useRef<HTMLInputElement>(null);
+  const [additionalImages, setAdditionalImages] = useState<AdditionalImageItem[]>([]);
+
   // External Links State
   const [wikipediaUrl, setWikipediaUrl] = useState("");
   const [grokepediaUrl, setGrokepediaUrl] = useState("");
@@ -45,6 +64,29 @@ export default function CreateCharacterModal({
   const [error, setError] = useState("");
 
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingAdditional, setIsDraggingAdditional] = useState(false);
+
+  const handlePanStart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    setIsPanning(true);
+  };
+
+  const handlePanMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isPanning) return;
+
+    const container = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+    const x = Math.max(0, Math.min(100, ((clientX - container.left) / container.width) * 100));
+    const y = Math.max(0, Math.min(100, ((clientY - container.top) / container.height) * 100));
+
+    setImagePosition(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+  };
+
+  const handlePanEnd = () => {
+    setIsPanning(false);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -63,7 +105,7 @@ export default function CreateCharacterModal({
     const file = e.dataTransfer.files?.[0];
     if (file) {
       if (file.type.startsWith("image/")) {
-        if (file.size > 5 * 1024 * 1024) {
+        if (file.size > MAX_IMAGE_BYTES) {
            setError("Image size must be less than 5MB");
            return;
         }
@@ -71,6 +113,7 @@ export default function CreateCharacterModal({
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreview(reader.result as string);
+          setImagePosition("50% 50%");
         };
         reader.readAsDataURL(file);
         setError("");
@@ -103,7 +146,7 @@ export default function CreateCharacterModal({
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > MAX_IMAGE_BYTES) {
         setError("Image size must be less than 5MB");
         return;
       }
@@ -111,10 +154,85 @@ export default function CreateCharacterModal({
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+        setImagePosition("50% 50%");
       };
       reader.readAsDataURL(file);
       setError("");
     }
+    e.target.value = "";
+  };
+
+  const addAdditionalImageFiles = (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+
+    const next: AdditionalImageItem[] = [];
+    let oversize = false;
+    let nonImage = false;
+
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        nonImage = true;
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        oversize = true;
+        continue;
+      }
+      next.push({
+        id: makeAdditionalId(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+
+    if (nonImage) setError("Only image files can be added.");
+    else if (oversize) setError("Each image must be under 5MB.");
+    else setError("");
+
+    if (next.length > 0) {
+      setAdditionalImages((prev) => [...prev, ...next]);
+    }
+  };
+
+  const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) addAdditionalImageFiles(e.target.files);
+    e.target.value = "";
+  };
+
+  const removeAdditionalImage = (id: string) => {
+    setAdditionalImages((prev) => {
+      const item = prev.find((x) => x.id === id);
+      if (item) URL.revokeObjectURL(item.previewUrl);
+      return prev.filter((x) => x.id !== id);
+    });
+  };
+
+  const handleAdditionalDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes("Files")) setIsDraggingAdditional(true);
+  };
+
+  const handleAdditionalDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleAdditionalDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = e.relatedTarget as Node | null;
+    if (next && (e.currentTarget as HTMLElement).contains(next)) return;
+    setIsDraggingAdditional(false);
+  };
+
+  const handleAdditionalDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingAdditional(false);
+    if (e.dataTransfer.files?.length) addAdditionalImageFiles(e.dataTransfer.files);
   };
 
   const handleReset = () => {
@@ -123,6 +241,7 @@ export default function CreateCharacterModal({
     setCharacterType("");
     setImageFile(null);
     setImagePreview(null);
+    setImagePosition("50% 50%");
     setWikipediaUrl("");
     setGrokepediaUrl("");
     setYoutubeVideos([]);
@@ -130,15 +249,14 @@ export default function CreateCharacterModal({
     setShowGrokepedia(false);
     setShowYoutube(false);
     setError("");
+    additionalImages.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    setAdditionalImages([]);
+    setIsDraggingAdditional(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("DEBUG: handleSubmit initiated", { 
-      name: formData.name, 
-      hasImage: !!imageFile, 
-      dna: !!formData.dnaCode 
-    });
+
     
     setLoading(true);
     setError("");
@@ -155,17 +273,24 @@ export default function CreateCharacterModal({
       let downloadURL = "https://placehold.co/600x800?text=No+Image";
 
       if (imageFile) {
-        console.log("DEBUG: Uploading image to Firebase Storage...");
         const storageRef = ref(storage, `custom_characters/${Date.now()}_${imageFile.name}`);
         const snapshot = await uploadBytes(storageRef, imageFile);
         downloadURL = await getDownloadURL(snapshot.ref);
-        console.log("DEBUG: Image uploaded, URL:", downloadURL);
       } else {
-        console.log("DEBUG: No image selected, using default placeholder.");
+      }
+
+      const additionalUrls: string[] = [];
+      for (let i = 0; i < additionalImages.length; i++) {
+        const { file } = additionalImages[i];
+        const storageRef = ref(
+          storage,
+          `custom_characters/${Date.now()}_${i}_${file.name.replace(/[^\w.-]/g, "_")}`
+        );
+        const snapshot = await uploadBytes(storageRef, file);
+        additionalUrls.push(await getDownloadURL(snapshot.ref));
       }
 
       // 2. Save Character Data with full schema
-      console.log("DEBUG: Adding document to Firestore 'characters' collection...");
       const docData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -174,8 +299,9 @@ export default function CreateCharacterModal({
         mainImage: {
           url: downloadURL,
           thumbnailUrl: downloadURL,
+          position: imagePosition,
         },
-        additionalImages: [], // Initialize empty as per schema
+        additionalImages: additionalUrls,
         tags: selectedTags,
         stats: {
           views: 0,
@@ -192,7 +318,6 @@ export default function CreateCharacterModal({
       };
 
       const docRef = await addDoc(collection(db, "characters"), docData);
-      console.log("DEBUG: Document created with ID:", docRef.id);
 
       setSuccess(true);
       
@@ -204,7 +329,6 @@ export default function CreateCharacterModal({
       }, 1500);
 
     } catch (err: any) {
-      console.error("DEBUG: Error in handleSubmit:", err);
       // Better error messages for Firebase specific errors if possible
       let errorMessage = "Failed to create character. Please try again.";
       
@@ -251,45 +375,109 @@ export default function CreateCharacterModal({
 
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             {/* Scrollable Body */}
-            <div className="p-5 lg:p-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="pt-5 pb-5 pl-3 pr-5 lg:pt-6 lg:pb-6 lg:pl-4 lg:pr-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20 hover:scrollbar-thumb-primary/40 scrollbar-track-transparent">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-x-4 lg:gap-y-6">
                 
                 {/* Left Column: Visuals (Image Upload) */}
-                <div className="lg:col-span-5 flex flex-col gap-4">
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`relative w-full max-w-[340px] mx-auto aspect-[3/4] rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-300 group shadow-lg ${
-                      isDragging
-                        ? "border-primary bg-primary/10 scale-[1.02]"
-                        : imagePreview 
-                          ? "border-transparent" 
-                          : "border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50 hover:border-primary/50"
-                    }`}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    
-                    {imagePreview ? (
-                      <div className="relative w-full h-full">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
-                          <span className="text-[13px] font-semibold flex items-center gap-2">
-                            <Upload className="size-4" /> Change Image
-                          </span>
+                <div className="lg:col-span-5 flex flex-col gap-4 min-w-0 lg:-ml-1">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    aria-hidden
+                  />
+
+                  {imagePreview ? (
+                    <>
+                      <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
+                        <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
+                          <strong>Visual Precision:</strong> Drag the portrait to frame the character&apos;s face. This framing will be used in the gallery and list views.
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        <div
+                          onMouseDown={handlePanStart}
+                          onMouseMove={handlePanMove}
+                          onMouseUp={handlePanEnd}
+                          onMouseLeave={handlePanEnd}
+                          onTouchStart={handlePanStart}
+                          onTouchMove={handlePanMove}
+                          onTouchEnd={handlePanEnd}
+                          className={`relative w-full max-w-[340px] mx-auto aspect-[3/4] rounded-2xl border-2 transition-all duration-300 group shadow-lg overflow-hidden ${
+                            isPanning
+                              ? "cursor-grabbing border-primary"
+                              : "cursor-grab border-transparent hover:border-primary/30"
+                          }`}
+                        >
+                          <div
+                            className="absolute inset-0 bg-cover bg-no-repeat pointer-events-none transition-transform duration-500"
+                            style={{
+                              backgroundImage: `url("${imagePreview}")`,
+                              backgroundPosition: imagePosition,
+                              transform: isPanning ? "scale(1.05)" : "scale(1)",
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors pointer-events-none" />
+                          <div className="absolute top-3 right-3 flex flex-col gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                imageInputRef.current?.click();
+                              }}
+                              className="size-9 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-primary shadow-lg hover:scale-110 transition-transform pointer-events-auto"
+                              title="Change Image"
+                            >
+                              <Pencil className="size-[18px]" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setImagePosition("50% 50%");
+                              }}
+                              className="size-9 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center text-text-sub-light dark:text-text-sub-dark shadow-lg hover:scale-110 transition-transform pointer-events-auto"
+                              title="Reset Framing"
+                            >
+                              <RotateCcw className="size-[18px]" />
+                            </button>
+                          </div>
+                          <div className="absolute bottom-3 inset-x-3 pointer-events-none">
+                            <div className="bg-black/60 backdrop-blur-md rounded-lg p-2.5 text-white">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-primary mb-0.5">
+                                Interactive Framing
+                              </p>
+                              <p className="text-[11px] font-medium leading-tight">
+                                Drag anywhere on the image to adjust focus
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-text-sub-light dark:text-text-sub-dark px-1 max-w-[340px] mx-auto w-full">
+                          <span>X: {imagePosition.split(" ")[0]}</span>
+                          <span>Y: {imagePosition.split(" ")[1]}</span>
                         </div>
                       </div>
-                    ) : (
+                    </>
+                  ) : (
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`relative w-full max-w-[340px] mx-auto aspect-[3/4] rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-300 group shadow-lg ${
+                        isDragging
+                          ? "border-primary bg-primary/10 scale-[1.02]"
+                          : "border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark/50 hover:border-primary/50"
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
                       <div className="flex flex-col items-center text-center p-6 text-text-sub-light dark:text-text-sub-dark pointer-events-none">
                         <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110">
                           <ImageIcon className={`size-8 ${isDragging ? "text-primary animate-pulse" : "text-primary/70"}`} />
@@ -304,19 +492,88 @@ export default function CreateCharacterModal({
                           JPG, PNG • Max 5MB
                         </span>
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Additional Mini Help */}
-                  <div className="bg-primary/5 dark:bg-primary/10 border-l-4 border-primary p-3 rounded-r-lg">
-                    <p className="text-[11px] text-text-main-light dark:text-text-main-dark leading-relaxed">
-                      <strong>Pro tip:</strong> Portraits from the Ruler Designer's portrait preview (3/4 aspect ratio) look best in this layout.
+                    </div>
+                  )}
+
+                  <div className="w-full max-w-[340px] mx-auto">
+                    <input
+                      ref={additionalImagesInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleAdditionalImagesChange}
+                      className="hidden"
+                      aria-hidden
+                    />
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-2">
+                      Additional images
+                    </p>
+                    <div
+                      onDragEnter={handleAdditionalDragEnter}
+                      onDragOver={handleAdditionalDragOver}
+                      onDragLeave={handleAdditionalDragLeave}
+                      onDrop={handleAdditionalDrop}
+                      className={`rounded-xl border-2 border-dashed p-3 transition-all duration-200 ${
+                        isDraggingAdditional
+                          ? "border-primary bg-primary/10 scale-[1.01]"
+                          : "border-border-light dark:border-border-dark bg-background-light/40 dark:bg-background-dark/30"
+                      }`}
+                    >
+                      <div className="grid grid-cols-4 gap-3">
+                        {additionalImages.map((item) => (
+                          <div
+                            key={item.id}
+                            className="relative aspect-square rounded-lg overflow-hidden border-2 border-border-light dark:border-border-dark group/add pointer-events-none"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={item.previewUrl}
+                              alt=""
+                              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAdditionalImage(item.id)}
+                              onDragOver={handleAdditionalDragOver}
+                              onDrop={handleAdditionalDrop}
+                              className="absolute top-0.5 right-0.5 size-5 rounded-full bg-black/80 text-white flex items-center justify-center text-[10px] font-bold opacity-0 group-hover/add:opacity-100 transition-opacity hover:bg-red-600 pointer-events-auto"
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => additionalImagesInputRef.current?.click()}
+                          onDragOver={handleAdditionalDragOver}
+                          onDrop={handleAdditionalDrop}
+                          className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary/50 transition-all relative flex items-center justify-center bg-background-light dark:bg-surface-dark group/add pointer-events-auto"
+                          title="Add images (browse — multiple allowed)"
+                        >
+                          <Plus className="size-6 text-text-sub-light dark:text-text-sub-dark group-hover/add:text-primary transition-colors" />
+                        </button>
+                      </div>
+                      <p
+                        className={`pointer-events-none text-center text-[11px] font-medium mt-3 leading-snug transition-colors ${
+                          isDraggingAdditional
+                            ? "text-primary"
+                            : "text-text-sub-light dark:text-text-sub-dark"
+                        }`}
+                      >
+                        {isDraggingAdditional
+                          ? "Drop images here"
+                          : "Drag & drop one or many images here, or use +"}
+                      </p>
+                    </div>
+                    <p className="text-[10px] text-text-sub-light dark:text-text-sub-dark mt-2 leading-snug">
+                      Optional gallery shots. Max 5MB per image.
                     </p>
                   </div>
                 </div>
 
-                {/* Right Column: Details & Actions */}
-                <div className="lg:col-span-7 flex flex-col justify-start">
+                {/* Middle Column: Core fields & DNA */}
+                <div className="lg:col-span-4 flex flex-col justify-start min-w-0">
                   
                   {/* Character Type Select */}
                   <div className="mb-5">
@@ -365,7 +622,7 @@ export default function CreateCharacterModal({
                   </div>
 
                   {/* Character Name Input */}
-                  <div className="mb-1">
+                  <div className="mb-6">
                     <input
                       type="text"
                       required
@@ -375,17 +632,6 @@ export default function CreateCharacterModal({
                       placeholder="Character Name *"
                     />
                     <div className="h-0.5 w-10 bg-primary mt-1.5 rounded-full"></div>
-                  </div>
-
-                  {/* Description Input */}
-                  <div className="mb-6">
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={2}
-                      className="w-full bg-transparent border-none p-0 text-base text-text-sub-light dark:text-text-sub-dark font-normal leading-relaxed placeholder:text-text-sub-light/40 dark:placeholder:text-text-sub-dark/40 focus:ring-0 outline-none resize-none"
-                      placeholder="Add a brief backstory or description for this character..."
-                    />
                   </div>
 
                   {/* External Links & Media */}
@@ -547,6 +793,21 @@ export default function CreateCharacterModal({
                     </div>
                   )}
 
+                </div>
+
+                {/* Right column: Description */}
+                <div className="lg:col-span-3 flex flex-col min-h-0 lg:sticky lg:top-4 lg:self-start">
+                  <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
+                    Description
+                  </label>
+                  <div className="flex flex-col flex-1 rounded-xl border border-border-light dark:border-border-dark bg-background-light/60 dark:bg-background-dark/40 p-4 shadow-sm min-h-[220px] lg:min-h-[min(520px,calc(90vh-12rem))]">
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full flex-1 min-h-[180px] lg:min-h-0 bg-transparent text-sm sm:text-base text-text-main-light dark:text-text-main-dark font-normal leading-relaxed placeholder:text-text-sub-light/45 dark:placeholder:text-text-sub-dark/45 focus:ring-0 outline-none resize-y"
+                      placeholder="Backstory, roleplay notes, or how you use this character in CK3..."
+                    />
+                  </div>
                 </div>
               </div>
             </div>
