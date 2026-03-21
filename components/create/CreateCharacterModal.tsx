@@ -256,19 +256,38 @@ export default function CreateCharacterModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    
-    setLoading(true);
     setError("");
 
-    try {
-      if (!formData.name.trim()) {
-        throw new Error("Character Name is required.");
-      }
-      if (!formData.dnaCode.trim()) {
-        throw new Error("DNA String is required.");
-      }
+    const hasCharacterType = (CHARACTER_TYPES as readonly string[]).includes(characterType);
+    const hasGender =
+      selectedTags.includes("Male") || selectedTags.includes("Female");
 
+    if (!hasCharacterType || !hasGender) {
+      const missing: string[] = [];
+      if (!hasCharacterType) missing.push("character type");
+      if (!hasGender) missing.push("gender");
+      const msg =
+        missing.length === 2
+          ? "Please select a character type and gender before creating."
+          : missing[0] === "character type"
+            ? "Please select a character type before creating."
+            : "Please select a gender (Male or Female) before creating.";
+      setError(msg);
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      setError("Character Name is required.");
+      return;
+    }
+    if (!formData.dnaCode.trim()) {
+      setError("DNA String is required.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
       // 1. Upload Image
       let downloadURL = "https://placehold.co/600x800?text=No+Image";
 
@@ -578,7 +597,7 @@ export default function CreateCharacterModal({
                   {/* Character Type Select */}
                   <div className="mb-5">
                     <label className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
-                      Character Type
+                      Character Type <span className="text-red-500">*</span>
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {CHARACTER_TYPES.map((type) => (
@@ -601,7 +620,7 @@ export default function CreateCharacterModal({
                   {/* Tag Multi-Select */}
                   <div className="mb-5">
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-text-sub-light dark:text-text-sub-dark mb-3 block">
-                      Select Categories
+                      Gender <span className="text-red-500">*</span>
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {AVAILABLE_TAGS.map((tag) => (
